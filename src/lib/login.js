@@ -57,7 +57,19 @@ export function ensureLoggedIn(req, res, next) {
     return next();
   }
 
-  return res.redirect('/admin/login');
+  return res.json({
+    message: 'Not authorized',
+  });
+}
+
+export function ensureAdmin(req, res, next) {
+  if (req.isAuthenticated() && req.user.admin === true) {
+    return next();
+  }
+
+  return res.json({
+    message: 'You are not an admin',
+  });
 }
 
 export default passport;
