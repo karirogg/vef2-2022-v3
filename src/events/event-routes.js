@@ -70,21 +70,25 @@ async function updateEventRoute(req, res) {
   const { name, description } = req.body;
   const { id } = req.params;
 
-  const event = await listEvent(id);
+  try {
+    const event = await listEvent(id);
 
-  const newName = name && name !== '' ? name : event.name;
-  const newSlug = slugify(newName);
-  const newDescription =
-    description && name !== '' ? description : event.description;
+    const newName = name && name !== '' ? name : event.name;
+    const newSlug = slugify(newName);
+    const newDescription =
+      description && name !== '' ? description : event.description;
 
-  const updated = await updateEvent(event.id, {
-    name: newName,
-    slug: newSlug,
-    description: newDescription,
-  });
+    const updated = await updateEvent(event.id, {
+      name: newName,
+      slug: newSlug,
+      description: newDescription,
+    });
 
-  if (updated) {
-    return res.status(200).json(updated);
+    if (updated) {
+      return res.status(200).json(updated);
+    }
+  } catch {
+    return res.status(404).json({ error: 'Viðburður fannst ekki.' });
   }
 
   return res.status(404);
@@ -92,6 +96,12 @@ async function updateEventRoute(req, res) {
 
 async function deleteEventRoute(req, res) {
   const { id } = req.params;
+
+  try {
+    await listEvent(id);
+  } catch {
+    return res.status(404).json({ error: 'Viðburður fannst ekki.' });
+  }
 
   const deleted = await deleteEvent(id);
 

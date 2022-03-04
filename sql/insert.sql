@@ -5,5 +5,5 @@ INSERT INTO events (creator_id, name, slug, description) VALUES (1, 'Hönnuðahi
 INSERT INTO events (creator_id, name, slug, description) VALUES (1, 'Verkefnastjórahittingur í apríl', 'verkefnastjorahittingur-i-april', 'Virkilega vel verkefnastýrður hittingur.');
 
 INSERT INTO registrations (user_id, comment, event_id) VALUES (1, 'Mjög gaman', 1);
-INSERT INTO registrations (user_id, comment, event_id) VALUES (1, 'Hlakka til!', 1);
-INSERT INTO registrations (user_id, comment, event_id) VALUES (1, 'Vonandi verður honum vel stýrt', 1);
+INSERT INTO registrations (user_id, comment, event_id) VALUES (1, 'Hlakka til!', 2);
+INSERT INTO registrations (user_id, comment, event_id) VALUES (1, 'Vonandi verður honum vel stýrt!', 3);

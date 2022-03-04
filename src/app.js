@@ -36,6 +36,14 @@ app.locals = {
   isInvalid,
 };
 
+app.get('/', (req, res) =>
+  res.json({
+    _links: {
+      users: '/users',
+      events: '/events',
+    },
+  })
+);
 app.use('/events', eventRouter);
 app.use('/users', userRouter);
 

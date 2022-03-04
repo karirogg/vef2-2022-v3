@@ -86,10 +86,10 @@ export async function loginAndReturnToken(data) {
 export async function createRandomUserAndReturnWithToken() {
   const rnd = randomValue();
   const username = `user${rnd}`;
-  const email = `user${rnd}@example.org`;
+  const name = rnd;
   const password = '1234567890';
 
-  const data = { username, password, email };
+  const data = { username, password, name };
   const { result } = await postAndParse('/users/register', data);
   const token = await loginAndReturnToken({ username, password });
 
