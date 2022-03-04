@@ -5,6 +5,7 @@ import { catchErrors } from '../lib/catch-errors.js';
 import { slugify } from '../lib/slugify.js';
 import {
   registrationValidationMiddleware,
+  requireNameDoesNotExist,
   requireNameNonempty,
   requireUserCreatedOrIsAdmin,
   xssSanitizationMiddleware,
@@ -164,6 +165,7 @@ router.post(
   '/',
   requireAuthentication,
   requireNameNonempty,
+  requireNameDoesNotExist,
   registrationValidationMiddleware('description'),
   xssSanitizationMiddleware('name'),
   xssSanitizationMiddleware('description'),
