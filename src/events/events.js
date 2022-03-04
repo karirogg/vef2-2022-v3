@@ -119,7 +119,7 @@ export async function listEvents() {
 export async function listEvent(id) {
   const q = `
     SELECT
-      events.id as id, events.name as name, users.username as creator, slug, description, created, updated
+      events.id as id, creator_id, events.name as name, users.username as creator, slug, description, created, updated
     FROM
       events
     JOIN
