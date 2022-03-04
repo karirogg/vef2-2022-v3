@@ -92,8 +92,6 @@ export async function unregister({ eventID, userID } = {}) {
   const values = [eventID, userID];
   const result = await query(q, values);
 
-  console.log(result.rows);
-
   if (result) {
     return 1;
   }
