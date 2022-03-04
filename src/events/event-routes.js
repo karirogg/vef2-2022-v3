@@ -95,7 +95,7 @@ async function deleteEventRoute(req, res) {
   const deleted = await deleteEvent(id);
 
   if (deleted) {
-    return res.json({
+    return res.status(200).json({
       msg: 'Viðburði eytt',
     });
   }
@@ -103,34 +103,6 @@ async function deleteEventRoute(req, res) {
   return res.status(400).json({
     error: 'Villa kom upp við að eyða viðburði',
   });
-}
-
-async function validationCheck(req, res, next) {
-  const { name, comment } = req.body;
-
-  // TODO tvítekning frá því að ofan
-  const { id } = req.params;
-  const event = await listEvent(id);
-  const registered = await listRegistered(event.id);
-
-  const data = {
-    name,
-    comment,
-  };
-
-  const validation = validationResult(req);
-
-  if (!validation.isEmpty()) {
-    return res.render('event', {
-      title: `${event.name} — Viðburðasíðan`,
-      data,
-      event,
-      registered,
-      errors: validation.errors,
-    });
-  }
-
-  return next();
 }
 
 async function registerRoute(req, res) {
@@ -145,10 +117,10 @@ async function registerRoute(req, res) {
   });
 
   if (registered) {
-    return res.json(registered);
+    return res.status(201).json(registered);
   }
 
-  return res.json({
+  return res.status(400).json({
     error: 'Villa kom upp við skráningu',
   });
 }
