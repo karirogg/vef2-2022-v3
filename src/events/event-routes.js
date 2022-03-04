@@ -97,9 +97,9 @@ async function updateEventRoute(req, res) {
 async function deleteEventRoute(req, res) {
   const { id } = req.params;
 
-  try {
-    await listEvent(id);
-  } catch {
+  const correspondingEvent = await listEvent(id);
+
+  if (!correspondingEvent) {
     return res.status(404).json({ error: 'Viðburður fannst ekki.' });
   }
 

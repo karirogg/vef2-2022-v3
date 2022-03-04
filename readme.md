@@ -9,6 +9,8 @@ npm run setup
 
 Í gefnum gagnagrunni er til notandi með notendanafn `admin` og lykilorð `1234567890` og ein skránin á hvern viðburð.
 
+Til þess að keyra upp forritið þarf að keyra `npm run dev`, til þess að keyra test skal keyra `npm run test` og til þess að keyra lintin skal keyra `npm run lint`.
+
 ## Próf
 
 Í prófunum eru tvenns konar próf. Eitt á test gagnagrunn, sem þarf að búa til með `createdb vef2-2022-v3-test`. Hin tegundin ef prófum eru próf á endapunktunum. Þessi próf eru framkvæmd á localhost með gagnagrunninn sem var búinn til í upphafi (að ofan). Það eru próf sem búa til notendur og skoða /users notendurna í users.test.js. Í events.test.js er farið í gegnum ferlið að skoða viðburði, búa til viðburð með nýjum notanda, skoða viburðinn, láta enn nýjan notanda skrá sig á þann viðburð og svo eyða viðburðinum. Þetta ætti ekki að hafa áhrif á events gagnagrunninn en ætti að búa til nokkra notendur.

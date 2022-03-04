@@ -1,10 +1,6 @@
 import crypto from 'crypto';
 import dotenv from 'dotenv';
 import fetch from 'node-fetch';
-import { dirname } from 'path';
-import { fileURLToPath } from 'url';
-
-const basePath = dirname(fileURLToPath(import.meta.url));
 
 dotenv.config();
 
@@ -16,14 +12,14 @@ const {
 
 export const baseUrl = BASE_URL;
 
+export function randomValue() {
+  return crypto.randomBytes(16).toString('hex');
+}
+
 export const generatedRandom = randomValue();
 export const generatedName = generatedRandom;
 export const generatedUsername = `user${generatedRandom}`;
 export const generatedPassword = '1234567890';
-
-export function randomValue() {
-  return crypto.randomBytes(16).toString('hex');
-}
 
 export function getRandomInt(min, max) {
   const ceilMin = Math.ceil(min);
@@ -105,7 +101,7 @@ export async function loginAsNewUserAndReturnToken() {
     password: generatedPassword,
     name: generatedName,
   };
-  const { result } = await postAndParse('/users/register', data);
+  await postAndParse('/users/register', data);
   const token = await loginAndReturnToken({
     username: generatedUsername,
     password: generatedPassword,
