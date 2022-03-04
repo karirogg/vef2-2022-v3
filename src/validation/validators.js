@@ -1,6 +1,8 @@
-import { body, param, query } from 'express-validator';
+import { body, query } from 'express-validator';
+import xss from 'xss';
 import { comparePasswords, findByUsername } from '../auth/users.js';
 import { LoginError } from '../errors.js';
+import { listEvent } from '../events/events.js';
 import { logger } from '../lib/logger.js';
 
 /**
@@ -67,7 +69,7 @@ export const usernameDoesNotExistValidator = body('username').custom(
   }
 );
 
-export const usernameAndPaswordValidValidator = body('username').custom(
+export const usernameAndPasswordValidValidator = body('username').custom(
   async (username, { req: { body: reqBody } = {} }) => {
     // Can't bail after username and password validators, so some duplication
     // of validation here
@@ -123,153 +125,50 @@ export const adminValidator = body('admin')
     return Promise.resolve();
   });
 
-export const numberValidator = body('number')
-  .isInt({ min: 1 })
-  .withMessage('number must be an integer larger than 0');
+export const requireUserCreatedOrIsAdmin = async (req, res, next) => {
+  const { id } = req.params;
 
-export const airDateOptionalValidator = body('airDate')
-  .optional()
-  .isDate()
-  .withMessage('airDate must be a date');
+  const event = await listEvent(id);
 
-export const airDateValidator = body('airDate')
-  .if(isPatchingAllowAsOptional)
-  .isDate()
-  .withMessage('airDate must be a date');
+  try {
+    if (!(req.user.admin || req.user.id === event.creator_id)) {
+      return res.status(403).json({
+        error: 'Insufficient authorization',
+      });
+    }
 
-export const overviewOptionalValidator = body('overview')
-  .optional()
-  .isString({ min: 0 })
-  .withMessage('overview must be a string');
+    return next();
+  } catch {
+    return res.status(404).json({ error: 'Not found' });
+  }
+};
 
-export const taglineOptionalValidator = body('tagline')
-  .optional()
-  .isString({ min: 0 })
-  .withMessage('tagline must be a string');
+// Endurnýtum mjög líka validation
 
-export const descriptionValidator = body('description')
-  .if(isPatchingAllowAsOptional)
-  .isString({ min: 1 })
-  .withMessage('description must be a string');
+export const requireNameNonempty = body('name')
+  .isLength({ min: 1 })
+  .withMessage('Viðburður verður að hafa nafn');
 
-export const languageValidator = body('language')
-  .if(isPatchingAllowAsOptional)
-  .isString({ min: 2, max: 2 })
-  .withMessage('language must be a string of length 2');
-
-export const networkOptionalValidator = body('network')
-  .optional()
-  .isString({ min: 0 })
-  .withMessage('network must be a string');
-
-// TODO refactor optional text validators into one generic one
-export const urlOptionalValidator = body('url')
-  .optional()
-  .isString({ min: 0 })
-  .withMessage('url must be a string');
-
-export const seasonIdValidator = param('seasonId')
-  .isInt({ min: 1 })
-  .withMessage('seasonId must be an integer larger than 0');
-// TODO custom that makes sure it exists
-
-export const serieIdValidator = param('serieId')
-  .isInt({ min: 1 })
-  .withMessage('serieId must be an integer larger than 0');
-// TODO custom that makes sure it exists
-
-export const episodeIdValidator = param('episodeId')
-  .isInt({ min: 1 })
-  .withMessage('episodeId must be an integer larger than 0');
-// TODO custom that makes sure it exists
-
-const MIMETYPES = ['image/jpeg', 'image/png', 'image/gif'];
-
-function validateImageMimetype(mimetype) {
-  return MIMETYPES.indexOf(mimetype.toLowerCase()) >= 0;
+export function registrationValidationMiddleware(textField) {
+  return [
+    body('name')
+      .isLength({ max: 64 })
+      .withMessage('Nafn má að hámarki vera 64 stafir'),
+    body(textField)
+      .isLength({ max: 400 })
+      .withMessage(
+        `${
+          textField === 'comment' ? 'Athugasemd' : 'Lýsing'
+        } má að hámarki vera 400 stafir`
+      ),
+  ];
 }
 
-export const posterValidator = body('image').custom(
-  async (image, { req = {} }) => {
-    const { file: { path, mimetype } = {} } = req;
+// Viljum keyra sér og með validation, ver gegn „self XSS“
+export function xssSanitizationMiddleware(textField) {
+  return [body(textField).customSanitizer((v) => xss(v))];
+}
 
-    if (!path && !mimetype && req.method === 'PATCH') {
-      return Promise.resolve();
-    }
-
-    if (!path && !mimetype) {
-      return Promise.reject(new Error('image is required'));
-    }
-
-    if (!validateImageMimetype(mimetype)) {
-      const error =
-        `Mimetype ${mimetype} is not legal. ` +
-        `Only ${MIMETYPES.join(', ')} are accepted`;
-      return Promise.reject(new Error(error));
-    }
-
-    return Promise.resolve();
-  }
-);
-
-export const episodeValidators = [
-  nameValidator,
-  numberValidator,
-  airDateOptionalValidator,
-  overviewOptionalValidator,
-  seasonIdValidator,
-  serieIdValidator,
-];
-
-export const seasonValidators = [
-  nameValidator,
-  numberValidator,
-  airDateOptionalValidator,
-  overviewOptionalValidator,
-  serieIdValidator,
-  posterValidator,
-];
-
-export const serieValidators = [
-  nameValidator,
-  airDateValidator,
-  inProductionValidator,
-  taglineOptionalValidator,
-  posterValidator,
-  descriptionValidator,
-  languageValidator,
-  networkOptionalValidator,
-  urlOptionalValidator,
-];
-
-export const validateRating = body('rating')
-  .isIn([0, 1, 2, 3, 4, 5])
-  .withMessage('rating must be an integer, one of 0, 1, 2, 3, 4, 5');
-
-export const validateState = body('state')
-  .isIn(['want to watch', 'watching', 'watched'])
-  .withMessage('state must be one of "want to watch", "watching", "watched"');
-
-export function atLeastOneBodyValueValidator(fields) {
-  return body().custom(async (value, { req }) => {
-    const { body: reqBody } = req;
-
-    let valid = false;
-
-    for (let i = 0; i < fields.length; i += 1) {
-      const field = fields[i];
-
-      if (field in reqBody && reqBody[field] != null) {
-        valid = true;
-        break;
-      }
-    }
-
-    if (!valid) {
-      return Promise.reject(
-        new Error(`require at least one value of: ${fields.join(', ')}`)
-      );
-    }
-    return Promise.resolve();
-  });
+export function sanitizationMiddleware(textField) {
+  return [body(textField).trim().escape()];
 }

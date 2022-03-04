@@ -4,10 +4,9 @@ import session from 'express-session';
 import { dirname, join } from 'path';
 import { fileURLToPath } from 'url';
 import { router as userRouter } from './auth/router.js';
+import { router as eventRouter } from './events/event-routes.js';
 import passport from './lib/login.js';
 import { isInvalid } from './lib/template-helpers.js';
-import { adminRouter } from './routes/admin-routes.js';
-import { indexRouter } from './routes/index-routes.js';
 
 dotenv.config();
 
@@ -49,8 +48,7 @@ app.locals = {
   isInvalid,
 };
 
-app.use('/admin', adminRouter);
-app.use('/', indexRouter);
+app.use('/events', eventRouter);
 app.use('/users', userRouter);
 
 /** Middleware sem sér um 404 villur. */

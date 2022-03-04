@@ -20,7 +20,7 @@ export async function createUser(name, username, password) {
 
   const q = `
     INSERT INTO
-      users (name, username, password)
+      public.users (name, username, password)
     VALUES
       ($1, $2, $3)
     RETURNING *`;

@@ -6,10 +6,6 @@ import xss from 'xss';
 export function registrationValidationMiddleware(textField) {
   return [
     body('name')
-      .trim()
-      .isLength({ min: 1 })
-      .withMessage('Nafn má ekki vera tómt'),
-    body('name')
       .isLength({ max: 64 })
       .withMessage('Nafn má að hámarki vera 64 stafir'),
     body(textField)
@@ -24,12 +20,9 @@ export function registrationValidationMiddleware(textField) {
 
 // Viljum keyra sér og með validation, ver gegn „self XSS“
 export function xssSanitizationMiddleware(textField) {
-  return [
-    body('name').customSanitizer((v) => xss(v)),
-    body(textField).customSanitizer((v) => xss(v)),
-  ];
+  return [body(textField).customSanitizer((v) => xss(v))];
 }
 
 export function sanitizationMiddleware(textField) {
-  return [body('name').trim().escape(), body(textField).trim().escape()];
+  return [body(textField).trim().escape()];
 }

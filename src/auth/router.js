@@ -5,7 +5,7 @@ import { logger } from '../lib/logger.js';
 import { validationCheck } from '../validation/helpers.js';
 import {
   passwordValidator,
-  usernameAndPaswordValidValidator,
+  usernameAndPasswordValidValidator,
   usernameDoesNotExistValidator,
   usernameValidator,
 } from '../validation/validators.js';
@@ -104,7 +104,7 @@ router.post(
   '/login',
   usernameValidator,
   passwordValidator,
-  usernameAndPaswordValidValidator,
+  usernameAndPasswordValidValidator,
   validationCheck,
   catchErrors(loginRoute)
 );
