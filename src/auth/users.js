@@ -114,7 +114,7 @@ export async function updateUser(id, password, email) {
 }
 
 export async function listUsers() {
-  const q = 'SELECT name, username FROM users';
+  const q = 'SELECT id, name, username FROM users';
 
   try {
     const result = await query(q);
