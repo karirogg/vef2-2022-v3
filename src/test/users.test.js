@@ -2,9 +2,12 @@ import { describe, expect, test } from '@jest/globals';
 import dotenv from 'dotenv';
 import {
   fetchAndParse,
+  generatedName,
+  generatedPassword,
+  generatedUsername,
   loginAndReturnToken,
+  loginAsHardcodedAdminAndReturnToken,
   postAndParse,
-  randomValue,
 } from './test-utils.js';
 
 dotenv.config();
@@ -12,13 +15,11 @@ dotenv.config();
 const { TOKEN_LIFETIME: tokenLifetime = 3600 } = process.env;
 
 describe('users', () => {
-  const rnd = randomValue();
+  const name = generatedName;
+  const username = generatedUsername;
+  const password = generatedPassword;
 
-  const name = rnd;
-  const username = `user${rnd}`;
-  const password = '1234567890';
-
-  test('Create user, successful', async () => {
+  test('POST /users/register, success', async () => {
     const data = { name, username, password };
     const { result, status } = await postAndParse('/users/register', data);
 
@@ -28,7 +29,7 @@ describe('users', () => {
     expect(result.password).toBeUndefined();
   });
 
-  test('Login user, success', async () => {
+  test('POST /users/login, success', async () => {
     const data = { username, password };
     const { result, status } = await postAndParse('/users/login', data);
 
@@ -41,7 +42,7 @@ describe('users', () => {
     expect(result.user.password).toBeUndefined();
   });
 
-  test('Logged in user data on /users/me', async () => {
+  test('GET /users/me', async () => {
     const token = await loginAndReturnToken({ username, password });
     expect(token).toBeTruthy();
 
@@ -52,5 +53,25 @@ describe('users', () => {
     expect(result.name).toBe(name);
     expect(result.username).toBe(username);
     expect(result.password).toBeUndefined();
+  });
+
+  test('GET /users/, as admin', async () => {
+    const token = await loginAsHardcodedAdminAndReturnToken();
+
+    const { result, status } = await fetchAndParse('/users/', token);
+
+    expect(status).toBe(200);
+    expect(result.length).toBeGreaterThan(0);
+    expect(result[0].name).toBe('Admin');
+  });
+
+  test('GET /users/:id/, as admin', async () => {
+    const token = await loginAsHardcodedAdminAndReturnToken();
+
+    const { result, status } = await fetchAndParse('/users/1', token);
+
+    expect(status).toBe(200);
+    expect(result.name).toBe('Admin');
+    expect(result.username).toBe('admin');
   });
 });

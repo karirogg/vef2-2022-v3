@@ -6,7 +6,7 @@ import { fileURLToPath } from 'url';
 
 const basePath = dirname(fileURLToPath(import.meta.url));
 
-dotenv.config();
+dotenv.config({ path: `${basePath}/.env.test` });
 
 const {
   BASE_URL = 'http://localhost:3000',
@@ -15,6 +15,11 @@ const {
 } = process.env;
 
 export const baseUrl = BASE_URL;
+
+export const generatedRandom = randomValue();
+export const generatedName = generatedRandom;
+export const generatedUsername = `user${generatedRandom}`;
+export const generatedPassword = '1234567890';
 
 export function randomValue() {
   return crypto.randomBytes(16).toString('hex');
@@ -94,10 +99,36 @@ export async function createRandomUserAndReturnWithToken() {
   };
 }
 
+export async function loginAsNewUserAndReturnToken() {
+  const data = {
+    username: generatedUsername,
+    password: generatedPassword,
+    name: generatedName,
+  };
+  const { result } = await postAndParse('/users/register', data);
+  const token = await loginAndReturnToken({
+    username: generatedUsername,
+    password: generatedPassword,
+  });
+
+  return token;
+}
+
 export async function loginAsHardcodedAdminAndReturnToken() {
   const token = await loginAndReturnToken({
     username: adminUser,
     password: adminPass,
   });
+
   return token;
+}
+
+export async function getNewestEventID() {
+  const { result: allEvents } = await fetchAndParse('/events/');
+
+  const eventIDs = allEvents.map((e) => e.id);
+
+  const newestID = Math.max(...eventIDs);
+
+  return newestID;
 }
