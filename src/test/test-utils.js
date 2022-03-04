@@ -6,7 +6,7 @@ import { fileURLToPath } from 'url';
 
 const basePath = dirname(fileURLToPath(import.meta.url));
 
-dotenv.config({ path: `${basePath}/.env.test` });
+dotenv.config();
 
 const {
   BASE_URL = 'http://localhost:3000',

@@ -29,8 +29,6 @@ describe('events', () => {
 
     const { result, status } = await postAndParse('/events/', newEvent, token);
 
-    console.log(result);
-
     expect(status).toBe(201);
     expect(result.name).toBe('Test event');
     expect(result.description).toBe('This is a test event');
@@ -38,7 +36,7 @@ describe('events', () => {
 
   test('GET /events/:id', async () => {
     const token = await loginAsNewUserAndReturnToken();
-    const newUser = await fetchAndParse('/users/me', token);
+    const { result: newUser } = await fetchAndParse('/users/me', token);
 
     const newestID = await getNewestEventID();
 
@@ -76,6 +74,7 @@ describe('events', () => {
 
     const { result, status } = await deleteAndParse(
       `/events/${newestID}`,
+      null,
       token
     );
 

@@ -1,7 +1,3 @@
-DROP TABLE IF EXISTS public.registrations;
-DROP TABLE IF EXISTS public.events;
-DROP TABLE IF EXISTS public.users;
-
 CREATE TABLE public.users (
   id SERIAL PRIMARY KEY,
   name character varying(64) NOT NULL,

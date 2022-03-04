@@ -36,9 +36,9 @@ export async function query(q, values = []) {
     const result = await client.query(q, values);
     return result;
   } catch (e) {
-    if (nodeEnv !== 'test') {
-      console.error('unable to query', e);
-    }
+    // if (nodeEnv !== 'test') {
+    console.error('unable to query', e);
+    // }
     return null;
   } finally {
     client.release();
@@ -89,4 +89,8 @@ export async function dropSchema(dropFile = DROP_SCHEMA_FILE) {
   const data = await readFile(dropFile);
 
   return query(data.toString('utf-8'));
+}
+
+export async function end() {
+  await pool.end();
 }

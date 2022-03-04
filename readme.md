@@ -1,146 +1,57 @@
-# Vefforritun 2, 2022. Verkefni 3: Viðburðakerfis vefþjónustur
+# Vefforritun 2 - Verkefni 3
 
-[Kynning á verkefni í tíma](https://youtu.be/2eikxqJ80pM).
+Til þess að setja upp verkefnið skal keyra
 
-Verkefnið er framhald af [verkefni 2](https://github.com/vefforritun/vef2-2022-v2/).
+```
+createdb vef2-2022-v3
+npm run setup
+```
 
-Bæta skal við vefþjónustum við viðburðakerfið með notendaskráningu ásamt því að bæta við fleiri aðgerðum.
+Í gefnum gagnagrunni er til notandi með notendanafn `admin` og lykilorð `1234567890` og ein skránin á hvern viðburð.
 
-Eftirfarandi eru markmið verkefnisins:
+## Próf
 
-* Búa til og hanna vefþjónustur
-* Framkvæma _CRUD_ aðgerðir gegnum vefþjónustlag með staðfestingu og hreinsun gagna
-* Setja upp auðkenningu með JWT tokens, innskráningu og nýskráningu
-* Skrifa „integration test“ fyrir vefþjónustu
-* Prófanir og debug á vefþjónustum
+Í prófunum eru tvenns konar próf. Eitt á test gagnagrunn, sem þarf að búa til með `createdb vef2-2022-v3-test`. Hin tegundin ef prófum eru próf á endapunktunum. Þessi próf eru framkvæmd á localhost með gagnagrunninn sem var búinn til í upphafi (að ofan). Það eru próf sem búa til notendur og skoða /users notendurna í users.test.js. Í events.test.js er farið í gegnum ferlið að skoða viðburði, búa til viðburð með nýjum notanda, skoða viburðinn, láta enn nýjan notanda skrá sig á þann viðburð og svo eyða viðburðinum. Þetta ætti ekki að hafa áhrif á events gagnagrunninn en ætti að búa til nokkra notendur.
 
-## Notendaumsjón
+## Hvernig á að kalla á vefþjónustuna með cURL
 
-Útfæra skal innskráningarkerfi með `passport`. Nota skal töflu í postgres grunni til að geyma notendanafn og lykilorð. Lykilorð skal vista með `bcrypt`.
+Til þess að kalla á vefþjónustuna með `GET` kalli er hægt að keyra eftirfarandi:
 
-Geyma skal gögn fyrir notanda í töflu í gagnagrunni:
+```
+curl --request GET http://vef2-v3-kari.herokuapp.com/<Endapunktur>
+```
 
-* `id` primary key fyrir töflu
-* `name`, nafn notanda, krafist, hámark 64 stafir
-* `username` einkvæmt og krafist, hámark 64 stafir
-* `password` krafist, hámark 256 stafir
-* `admin`, boolean gildi um hvort notandi sé stjórnandi eða ekki
+Til þess að kalla á vefþjónustuna með `POST` kalli er hægt að keyra eftirfarandi:
 
-Útbúa skal a.m.k. einn notanda með gefið notendanafn lykilorð í `readme` í skilum.
+```
+curl --request POST http://vef2-v3-kari.herokuapp.com/<Endapunktur>
+```
 
-Innskráning fer fram gegnum `/login`, nýskráning fer fram í gegnum `/register`.
+Ef á að innihalda Bearer token skal skrifa kall á forminu:
 
-Huga þarf að öryggi, sér í lagi að aðeins sé hægt að framkvæma aðgerðir ef viðkomandi er innskráður og að lykilorð sé geymt á öruggan máta.
+```
+curl --request GET http://vef2-v3-kari.herokuapp.com/<Endapunktur>
+  --header 'Authorization: Bearer <JWT-token>'
+```
 
-## Vefþjónustur
+þar sem `<JWT-token>` er jwt token sem fékkst með innskráningu.
 
-Þegar þau eru send á bakenda skal framkvæma _validation_  og _sanitization_ á gögnum áður en þau eru vistuð í gagnagrunn.
+Til þess að láta kallið nota body skal skrifa kall á forminu
 
-Ef villur eru í gögnum skal birta það á framenda ásamt þeim gildum sem komu fram.
+```
+curl --request GET http://vef2-v3-kari.herokuapp.com/<Endapunktur> --header 'Authorization: Bearer <JWT-token>' --header 'Content-Type: application/json' --data '{ <data json> }'
+```
 
-Huga þarf að öryggi, sér í lagi að engar _xss_ holur séu til staðar. Leyfilegt er að taka við HTML og birta í lýsingu á viðburði, ef það er öruggt.
+Ef nota á fleiri en einn header, skal nota mörg `--header` flögg.
 
-### Notendaumsjón, vefþjónustur
+### Dæmi um köll
 
-* `/users/`
-  * `GET` skilar síðu af notendum, aðeins ef notandi sem framkvæmir er stjórnandi
-* `/users/:id`
-  * `GET` skilar notanda, aðeins ef notandi sem framkvæmir er stjórnandi
-* `/users/register`
-  * `POST` staðfestir og býr til notanda. Skilar auðkenni og nafn. Notandi sem búinn er til skal aldrei vera stjórnandi
-* `/users/login`
-  * `POST` með notandanafni og lykilorði skilar token ef gögn rétt
-* `/users/me`
-  * `GET` skilar upplýsingum um notanda sem á token, auðkenni og nafn, aðeins ef notandi innskráður
+```
+curl --request GET http://vef2-v3-kari.herokuapp.com/events/
 
-Aldrei skal skila eða sýna hash fyrir lykilorð.
+curl --request POST http://vef2-v3-kari.herokuapp.com/users/login --header 'Content-Type: application/json' --data-raw '{"username": "admin","password": "1234567890"}'
 
-### Viðburðir
+curl --request GET http://vef2-v3-kari.herokuapp.com/users/me --header 'Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MSwiaWF0IjoxNjQ2NDEzOTA5LCJleHAiOjE2NDY0MTc1MDl9.mKzTU2RgDHCFsn9Q0BsMvgtmMKW2nOXTCKhDawYWtiA'
+```
 
-* `/events/`
-  * `GET` skilar síðu af viðburðum
-  * `POST` býr til vibðurð, aðeins ef innskráður notandi
-* `/events/:id`
-  * `GET` skilar viðburð
-  * `PATCH` uppfærir viðburð, a.m.k. eitt gildi, aðeins ef notandi bjó til viðburð eða er stjórnandi
-  * `DELETE` eyðir viðburð, aðeins ef notandi bjó til viðburð eða er stjórnandi
-
-### Skráningar
-
-* `/events/:id/register`
-  * `POST` skráir notanda á viðburð, aðeins ef innskráður notandi
-  * `DELETE` afskráir notanda af viðburði, aðeins ef innskráður notandi og til skráning
-
-## Postgres grunnur
-
-Vista skal gögn í postgres gagnagrunni, hér er skilgreining á grunni frá því í verkefni 2:
-
-Fyrir viðburði:
-
-* `id` primary key fyrir töflu
-* `name` krafist, nafn á viðburði hámark 64 stafir, t.d. `Hönnuðahittingur í mars`
-* `slug` útbúið útfrá nafni hámark 64 stafir, krafist, útbúið útfrá `name` þ.a. aðeins `ASCII` stafir séu notaðir og `-` í staðinn fyrir bil, t.d. `honnudahittingur-i-mars`
-* `description`, texti, valkvæmt
-* `created`, dagstími þegar færsla var búin til
-* `updated`, dagstími þegar færslu var breytt
-
-Fyrir skráningar:
-
-* `id` primary key fyrir töflu
-* `name` krafist, nafn á þeim sem skráir sig, hámark 64 stafir
-* `comment` valkvæmt, athugasemd við skráningu
-* `event` tala, krafist, vísun í `id` í viðburðatöflu
-* `created`, dagstími þegar færsla var búin til
-
-Bæta þarf við:
-
-* `name` við notendatöflu
-* Tengingu viðburða við notanda sem bjó hann til í stað þess að skráning hafi `name`. Skráningartaflan verður _tengitafla_ milli notenda og viðburða sem á sér `comment` við þá skráningu
-* Virkni til þess að eyða viðburðum m.t.t. þess að tenging er milli skráninga og viðburðs og hvað gera eigi við þær skráningar
-
-Huga þarf að öryggi, sér í lagi að engar _injection_ holur séu til staðar.
-
-Útbúa skal a.m.k. þrjá test viðburði og eina til þrjár test skráningar á hvern þeirra.
-
-## Tæki, tól og test
-
-Uppsett er `eslint` fyrir JavaScript. Engar villur skulu koma fram ef `npm run lint` er keyrt.
-
-`jest` er uppsett með dæmi um hvernig keyra megi test á _sér_ test gagnagrunn.
-
-Skrifa skal test fyrir a.m.k. eina aðgerð á hvern endapunkt.
-
-Setja skal upp vefinn á Heroku tengt við GitHub með Heroku postgres settu upp.
-
-Skrá skal og setja dæmi um það hvernig kalla eigi á vefþjónustur með cURL.
-
-## Mat
-
-* 50% Vefþjónustur, útfærsla og tenging við gagnagrunn
-* 30% Notendausmjón með nýskráningu og innskráningu með JWT
-* 20% Tæki, tól og test, verkefni sett upp á Heroku, dæmi um köll
-
-## Sett fyrir
-
-Verkefni sett fyrir í fyrirlestri miðvikudaginn 16. febrúar 2022.
-
-## Skil
-
-Skila skal í Canvas í seinasta lagi fyrir lok dags föstudaginn 4. mars 2022.
-
-Skil skulu innihalda:
-
-* Slóð á verkefni keyrandi á Heroku
-* Slóð á GitHub repo fyrir verkefni. Dæmatímakennurum skal hafa verið boðið í repo. Notendanöfn þeirra eru:
-  * `MarzukIngi`
-  * `WhackingCheese`
-
----
-
-> Útgáfa 0.2
-
-| Útgáfa | Breyting                                     |
-|--------|----------------------------------------------|
-| 0.1    | Fyrsta útgáfa                                |
-| 0.2    | Fjarlægja `stylelint`, laga lýsingu á testum, fjarlægja netfang úr lýsingu |
-| 0.3 | Bæta við `admin` í notendatöflu |
+Tokeninn sem var notaður í síðasta kallinu er tokeninn sem kall nr. 2 skilaði.
