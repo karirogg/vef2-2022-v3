@@ -2,7 +2,7 @@ import { body, query } from 'express-validator';
 import xss from 'xss';
 import { comparePasswords, findByUsername } from '../auth/users.js';
 import { LoginError } from '../errors.js';
-import { listEvent } from '../events/events.js';
+import { listEvent, listEventByName } from '../events/events.js';
 import { logger } from '../lib/logger.js';
 
 /**
@@ -95,6 +95,16 @@ export const usernameAndPasswordValidValidator = body('username').custom(
     return Promise.resolve();
   }
 );
+
+export const requireNameDoesNotExist = async (req, res, next) => {
+  const event = await listEventByName();
+
+  if (!event) return next();
+
+  return res.status(400).json({
+    error: 'Event name exists in database',
+  });
+};
 
 export const inProductionValidator = body('inproduction')
   .if(isPatchingAllowAsOptional)
