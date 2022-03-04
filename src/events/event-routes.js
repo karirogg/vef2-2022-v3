@@ -60,7 +60,7 @@ async function createEventRoute(req, res) {
     return res.status(201).json(created);
   }
 
-  return res.json({
+  return res.status(400).json({
     msg: 'Villa við að búa til viðburð!',
   });
 }
@@ -71,9 +71,10 @@ async function updateEventRoute(req, res) {
 
   const event = await listEvent(id);
 
-  const newName = name ?? event.name;
+  const newName = name && name !== '' ? name : event.name;
   const newSlug = slugify(newName);
-  const newDescription = description ?? event.description;
+  const newDescription =
+    description && name !== '' ? description : event.description;
 
   const updated = await updateEvent(event.id, {
     name: newName,
