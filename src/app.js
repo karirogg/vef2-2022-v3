@@ -4,6 +4,7 @@ import session from 'express-session';
 import { router as userRouter } from './auth/router.js';
 import { router as eventRouter } from './events/event-routes.js';
 import { isInvalid } from './lib/template-helpers.js';
+import { cors } from './utils/cors.js';
 
 dotenv.config();
 
@@ -22,6 +23,7 @@ const app = express();
 
 // Sér um að req.body innihaldi gögn úr formi
 app.use(express.json());
+app.use(cors);
 
 app.use(
   session({
